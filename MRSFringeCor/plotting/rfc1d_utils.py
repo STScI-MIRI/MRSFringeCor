@@ -20,7 +20,7 @@ from jwst.residual_fringe.fitter import ChiSqOutlierRejectionFitter
 import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
-#
+
 
 # hard coded parameters, have been selected based on testing but can be changed
 NUM_KNOTS = 80  # number of knots for bkg model if no other info provided
