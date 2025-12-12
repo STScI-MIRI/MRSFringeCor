@@ -1,0 +1,114 @@
+[build-system]
+requires = [
+  "setuptools>=62.1",
+  "setuptools_scm[toml]>=8.0.0",
+  "wheel",]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "MRSFringeCor"
+description = "MIRI MRS static residual fringe correction"
+requires-python = ">=3.10"
+readme = { file = "README.rst", content-type = "text/x-rst" }
+license = { file = "LICENSE" }
+authors = [
+  { name = "Karl D. Gordon", email = "kgordon@stsci.edu" },
+]
+dependencies = [
+    "astropy",
+    "scipy",
+    "measure_extinction @ git+ssh://git@github.com/karllark/measure_extinction.git"]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-doctestplus",
+    "pytest-cov",
+    "matplotlib"
+]
+docs = [
+    "sphinx",
+    "sphinx-automodapi",
+    "matplotlib",
+    "graphviz"
+]
+[project.urls]
+repository = "https://github.com/STScI-MIRI/MRSFringeCor"
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["*"]
+
+[tool.setuptools.package-data]
+MRSFringeCor = ["data/*"]
+
+[tool.setuptools_scm]
+version_file = "MRSFringeCor/version.py"
+
+[tool.pytest.ini_options]
+testpaths = [
+  "MRSFringeCor",
+  "docs",
+]
+doctest_plus = "enabled"
+text_file_format = "rst"
+addopts = "--doctest-rst"
+norecursedirs = [
+  "MRSFringeCor/utils",
+  "MRSFringeCor[\\/]_dev",
+  "MRSFringeCor/docs/_build/*",
+  "MRSFringeCor/docs/api/*"
+]
+
+[tool.coverage.run]
+omit = [
+ "MRSFringeCor/__init*",
+ "MRSFringeCor/conftest.py",
+ "MRSFringeCor/*setup_package*",
+ "MRSFringeCor/tests/*",
+ "MRSFringeCor/*/tests/*",
+ "MRSFringeCor/extern/*",
+ "MRSFringeCor/version*",
+ "*/MRSFringeCor/__init*",
+ "*/MRSFringeCor/conftest.py",
+ "*/MRSFringeCor/*setup_package*",
+ "*/MRSFringeCor/tests/*",
+ "*/MRSFringeCor/*/tests/*",
+ "*/MRSFringeCor/extern/*",
+ "*/MRSFringeCor/version*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  # Have to re-enable the standard pragma
+  "pragma: no cover",
+  # Don't complain about packages we have installed
+  "except ImportError",
+  # Don't complain if tests don't hit assertions
+  "raise AssertionError",
+  "raise NotImplementedError",
+  # Don't complain about script hooks
+  "def main(.*):",
+  # Ignore branches that don't pertain to this version of Python
+  "pragma: py{ignore_python_version}",
+  # Don't complain about IPython completion helper
+  "def _ipython_key_completions_",
+  # typing.TYPE_CHECKING is False at runtime
+  "if TYPE_CHECKING:",
+  # Ignore typing overloads
+  "@overload",
+]
+
+[tool.flake8]
+    exclude = ["sphinx","*parsetab.py","conftest.py","docs/conf.py","setup.py"]
+    max-complexity = 10
+    max-line-length = 100
+    extend-ignore = """
+        W503,
+        E203,
+        E501,
+    """
