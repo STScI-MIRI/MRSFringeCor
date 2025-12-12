@@ -31,7 +31,7 @@ def writel3asn(scifiles, bgfiles, asnfile, prodname):
         outfile.write(serialized)
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("starname", help="name of star")
     parser.add_argument("--det1skip", help="skip dectector1", action="store_true")
@@ -122,3 +122,6 @@ if __name__ == "__main__":
 
     fname = f"{output_dir}/{args.starname}_1dspec"
     fig.savefig(f"{fname}.png")
+
+if __name__ == "__main__":
+    main()
