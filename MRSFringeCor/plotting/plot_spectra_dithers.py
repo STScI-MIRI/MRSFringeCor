@@ -123,7 +123,8 @@ if __name__ == "__main__":  # pragma: no cover
                             # fit a line - asteroids
                             fit = fitting.LinearLSQFitter()
                             line_init = models.Polynomial1D(2)
-                            fitted_line = fit(line_init, pwave, pflux)
+                            gvals = pwave.value < 27.5
+                            fitted_line = fit(line_init, pwave[gvals], pflux[gvals])
                             mfluxseg = fitted_line(pwave)
 
                         pflux /= mfluxseg
@@ -182,10 +183,12 @@ if __name__ == "__main__":  # pragma: no cover
             xrange = [11.5, 18.0]
         else:
             xrange = [17.5, 29.0]
-        ax.set_xlim(xrange)
         channame = args.chan
     else:
         channame = "all"
+        xrange = [4.7, 29.0]
+
+    ax.set_xlim(xrange)
 
     ax.set_ylim(0.95, 1.05 + (5.5 * offval))
 

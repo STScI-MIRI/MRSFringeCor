@@ -1,6 +1,7 @@
 import argparse
 import os
 import glob
+import importlib.resources as importlib_resources
 from astropy.io import fits
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,7 +12,12 @@ from jwst.associations.lib.rules_level3_base import DMS_Level3_Base
 
 
 # get defaults for running the different pipeline stages
-from MRSFringeCor.utils.mrs_helpers import rundet1, runspec2, runspec3
+from MRSFringeCor.utils.mrs_helpers import (
+    rundet1,
+    runspec2,
+    runspec3,
+    correct_miri_mrs_spectral_leak,
+)
 
 
 # Define a useful function to write out a Lvl3 association file from an input list
@@ -19,15 +25,15 @@ from MRSFringeCor.utils.mrs_helpers import rundet1, runspec2, runspec3
 def writel3asn(scifiles, bgfiles, asnfile, prodname):
     # Define the basic association of science files
     asn = afl.asn_from_list(scifiles, rule=DMS_Level3_Base, product_name=prodname)
-        
+
     # Add background files to the association
     # nbg=len(bgfiles)
     # for ii in range(0,nbg):
     #     asn['products'][0]['members'].append({'expname': bgfiles[ii], 'exptype': 'background'})
-        
+
     # Write the association to a json file
     _, serialized = asn.dump()
-    with open(asnfile, 'w') as outfile:
+    with open(asnfile, "w") as outfile:
         outfile.write(serialized)
 
 
@@ -71,8 +77,8 @@ def main():
     sstring = f"{main_path}/jw*mirifu*rate.fits"
     print(sstring)
     ratefiles = sorted(glob.glob(sstring))
-    ratefiles=np.array(ratefiles)
-    print('Found ' + str(len(ratefiles)) + ' input files to process')
+    ratefiles = np.array(ratefiles)
+    print("Found " + str(len(ratefiles)) + " input files to process")
 
     if dospec2:
         for file in ratefiles:
@@ -100,6 +106,36 @@ def main():
     else:
         print("Skipping Spec3 processing")
 
+    # do the leak correction for the individual dithers
+    cname = args.starname
+    # get the 1st dithers only
+    files = glob.glob(f"{cname}/jw*_00001_*_x1d.fits")
+    print(files)
+
+    print("correcting the leak in 3A using 1B")
+    for cfile in files:
+        # find the two segments needed = 3A and 1B
+        h = fits.getheader(cfile)
+        chn = int(h["CHANNEL"])
+        band = h["BAND"].lower()
+        if (chn == 1) & (band == "medium"):
+            file_1b = cfile
+        if (chn == 3) & (band == "short"):
+            file_3a = cfile
+
+    # get the location of the leak correction file
+    ref = importlib_resources.files("MRSFringeCor") / "leak"
+    with importlib_resources.as_file(ref) as cdata_path:
+        ref_path = str(cdata_path)
+
+    # loop over the dithers and correct the 3A segments using the 1B segment
+    for k, cdith in enumerate(["1", "2", "3", "4"]):
+        correct_miri_mrs_spectral_leak(
+            file_3a.replace("_00001_", f"_0000{cdith}_"),
+            file_1b.replace("_00001_", f"_0000{cdith}_"),
+            f"{ref_path}/MRS_spectral_leak_fractional.fits",
+        )
+
     rc("axes", linewidth=2)
     fig, ax = plt.subplots(1, 1, figsize=(15, 10), dpi=100)
 
@@ -122,6 +158,7 @@ def main():
 
     fname = f"{output_dir}/{args.starname}_1dspec"
     fig.savefig(f"{fname}.png")
+
 
 if __name__ == "__main__":
     main()

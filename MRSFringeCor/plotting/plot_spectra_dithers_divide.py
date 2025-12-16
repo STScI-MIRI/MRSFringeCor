@@ -8,10 +8,13 @@ from astropy.io import fits
 from astropy.table import QTable
 from astropy.units import UnitsWarning
 from astropy.stats import sigma_clipped_stats
+from astropy.modeling import models, fitting
+
 # import astropy.units as u
 
 
 from jwst.residual_fringe.utils import fit_residual_fringes_1d
+
 # from astropy import constants as const
 # from specutils import Spectrum
 # from specutils.analysis import correlation
@@ -60,11 +63,17 @@ def main():
 
     offval = 0.15
 
+    # S/N regions
+    snreg = {"1short": [5.16, 5.32],
+             "1medium": [6.0, 6.1],
+             "1long": [7.0, 7.2]}
+
     cname = args.starname
     # get the 1st dithers only
     files = glob.glob(f"{cname}/jw*_00001_*_x1d.fits")
 
-    pname = cname
+    # warning about masks in numpy that I've not managed to figure out yet
+    warnings.filterwarnings('ignore', category=UserWarning)
 
     for cfile in files:
 
@@ -84,10 +93,10 @@ def main():
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=UnitsWarning)
             ptab = QTable.read(pipefile, hdu=1)
-        pwave = ptab["WAVELENGTH"].data
-        pipeflux = ptab["RF_FLUX"].data * np.square(pwave)
+        pipewave = np.array(ptab["WAVELENGTH"].data)
+        pipeflux = ptab["RF_FLUX"].data * np.square(pipewave)
         ax.plot(
-            ptab["WAVELENGTH"],
+            pipewave,
             pipeflux / np.nanmedian(pipeflux) + (4.33 * offval),
             "g-",
             alpha=0.5,
@@ -98,7 +107,7 @@ def main():
         allspecrf = np.empty((nwaves, 4))
 
         for k, cdith in enumerate(["1", "2", "3", "4"]):
-            print(f"dither = {cdith}")
+            # print(f"dither = {cdith}")
 
             tfile = cfile.replace("_00001_", f"_0000{cdith}_")
 
@@ -185,7 +194,32 @@ def main():
             alpha=0.75,
         )
 
-        sdefringe = fit_residual_fringes_1d(avespec, refwave, channel=chn+1)
+        sdefringe = fit_residual_fringes_1d(avespec, refwave, channel=chn + 1)
+        rfringecor = sdefringe / avespec
+
+        ckey = f"{chn}{band}"
+        if ckey in snreg.keys():
+            fit = fitting.LinearLSQFitter()
+            line_init = models.Linear1D()
+            gvals = (refwave >= snreg[ckey][0]) & (refwave <= snreg[ckey][1])
+
+            # final
+            fitted_line = fit(line_init, refwave[gvals], sdefringe[gvals])
+            tratio = sdefringe[gvals] / fitted_line(refwave[gvals])
+            sstats_fin = sigma_clipped_stats(tratio)
+
+            # before residual fringe
+            fitted_line = fit(line_init, refwave[gvals], avespec[gvals])
+            tratio = avespec[gvals] / fitted_line(refwave[gvals])
+            sstats = sigma_clipped_stats(tratio)            
+
+            # default pipeline
+            gvals = (pipewave >= snreg[ckey][0]) & (pipewave <= snreg[ckey][1])
+            fitted_line = fit(line_init, pipewave[gvals], pipeflux[gvals])
+            tratio = pipeflux[gvals] / fitted_line(pipewave[gvals])
+            sstats_pipe = sigma_clipped_stats(tratio)   
+
+            print("w/ rfcor, static rfcor, default:", sstats_fin[0] / sstats_fin[2], sstats[0] / sstats[2], sstats_pipe[0] / sstats_pipe[2])
 
         # residual definging on the final average
         # sdefringe = rf1d(avespec, refwave, chn+1)
@@ -194,6 +228,14 @@ def main():
             sdefringe / np.nanmedian(sdefringe) + (5.33 * offval),
             linestyle="-",
             color="black",
+            alpha=0.75,
+        )
+
+        ax.plot(
+            refwave,
+            rfringecor / np.nanmedian(rfringecor) + (5.67 * offval),
+            linestyle="-",
+            color="orange",
             alpha=0.75,
         )
 
@@ -232,7 +274,7 @@ def main():
     else:
         channame = "all"
 
-    ax.set_ylim(0.95, 1.10 + (5 * offval))
+    ax.set_ylim(0.95, 1.15 + (5 * offval))
 
     # ax.legend()
 
