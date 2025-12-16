@@ -34,3 +34,6 @@ Models downloaded from CALSPEC and stored in `models/` subdir.
 
 Average residual fringe corrections for each channel and grating
 setting created using `plotting/plot_spectra_dithers.py`.
+
+Once the static residual fringe correction is done, then data can 
+corrected using `mrs_srfcor` and plotted using `mrs_plot`.
