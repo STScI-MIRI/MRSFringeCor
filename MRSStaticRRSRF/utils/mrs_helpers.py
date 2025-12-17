@@ -15,7 +15,7 @@ def rundet1(filename, outdir, showers=True):
     }  # always skip as IPC reference file not updated for flight
 
     # use half the cores for the two steps that can use more cores
-    cpufraction = "half"
+    cpufraction = "4"
     if showers:
         det1_dict["jump"] = {
             "maximum_cores": cpufraction,
