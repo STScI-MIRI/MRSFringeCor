@@ -6,7 +6,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "MRSFringeCor"
+name = "MRSStaticRRSRF"
 description = "MIRI MRS static residual fringe correction"
 requires-python = ">=3.10"
 readme = { file = "README.rst", content-type = "text/x-rst" }
@@ -16,16 +16,14 @@ authors = [
 ]
 dependencies = [
     "astropy",
-    "scipy",
-    "measure_extinction @ git+ssh://git@github.com/karllark/measure_extinction.git"
 ]
 
 dynamic = ["version"]
 
 [project.scripts]
-mrs_proc = "MRSFringeCor.utils.proc_mrs:main"
-mrs_srfcor = "MRSFringeCor.plotting.plot_spectra_dithers_divide:main"
-mrs_plot = "MRSFringeCor.plotting.plot_mrs_x1d:main"
+mrs_proc = "MRSStaticRRSRF.utils.proc_mrs:main"
+mrs_srfcor = "MRSStaticRRSRF.plotting.plot_spectra_dithers_divide:main"
+mrs_plot = "MRSStaticRRSRF.plotting.plot_mrs_x1d:main"
 
 [project.optional-dependencies]
 test = [
@@ -41,7 +39,7 @@ docs = [
     "graphviz"
 ]
 [project.urls]
-repository = "https://github.com/STScI-MIRI/MRSFringeCor"
+repository = "https://github.com/STScI-MIRI/MRSStaticRRSRF"
 
 [tool.setuptools]
 zip-safe = false
@@ -51,42 +49,42 @@ include-package-data = true
 include = ["*"]
 
 [tool.setuptools.package-data]
-MRSFringeCor = ["data/*"]
+MRSStaticRRSRF = ["data/*"]
 
 [tool.setuptools_scm]
-version_file = "MRSFringeCor/version.py"
+version_file = "MRSStaticRRSRF/version.py"
 
 [tool.pytest.ini_options]
 testpaths = [
-  "MRSFringeCor",
+  "MRSStaticRRSRF",
   "docs",
 ]
 doctest_plus = "enabled"
 text_file_format = "rst"
 addopts = "--doctest-rst"
 norecursedirs = [
-  "MRSFringeCor/utils",
-  "MRSFringeCor[\\/]_dev",
-  "MRSFringeCor/docs/_build/*",
-  "MRSFringeCor/docs/api/*"
+  "MRSStaticRRSRF/utils",
+  "MRSStaticRRSRF[\\/]_dev",
+  "MRSStaticRRSRF/docs/_build/*",
+  "MRSStaticRRSRF/docs/api/*"
 ]
 
 [tool.coverage.run]
 omit = [
- "MRSFringeCor/__init*",
- "MRSFringeCor/conftest.py",
- "MRSFringeCor/*setup_package*",
- "MRSFringeCor/tests/*",
- "MRSFringeCor/*/tests/*",
- "MRSFringeCor/extern/*",
- "MRSFringeCor/version*",
- "*/MRSFringeCor/__init*",
- "*/MRSFringeCor/conftest.py",
- "*/MRSFringeCor/*setup_package*",
- "*/MRSFringeCor/tests/*",
- "*/MRSFringeCor/*/tests/*",
- "*/MRSFringeCor/extern/*",
- "*/MRSFringeCor/version*",
+ "MRSStaticRRSRF/__init*",
+ "MRSStaticRRSRF/conftest.py",
+ "MRSStaticRRSRF/*setup_package*",
+ "MRSStaticRRSRF/tests/*",
+ "MRSStaticRRSRF/*/tests/*",
+ "MRSStaticRRSRF/extern/*",
+ "MRSStaticRRSRF/version*",
+ "*/MRSStaticRRSRF/__init*",
+ "*/MRSStaticRRSRF/conftest.py",
+ "*/MRSStaticRRSRF/*setup_package*",
+ "*/MRSStaticRRSRF/tests/*",
+ "*/MRSStaticRRSRF/*/tests/*",
+ "*/MRSStaticRRSRF/extern/*",
+ "*/MRSStaticRRSRF/version*",
 ]
 
 [tool.coverage.report]

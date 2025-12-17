@@ -12,7 +12,7 @@ from jwst.associations.lib.rules_level3_base import DMS_Level3_Base
 
 
 # get defaults for running the different pipeline stages
-from MRSFringeCor.utils.mrs_helpers import (
+from MRSStaticRRSRF.utils.mrs_helpers import (
     rundet1,
     runspec2,
     runspec3,
@@ -124,7 +124,7 @@ def main():
             file_3a = cfile
 
     # get the location of the leak correction file
-    ref = importlib_resources.files("MRSFringeCor") / "leak"
+    ref = importlib_resources.files("MRSStaticRRSRF") / "leak"
     with importlib_resources.as_file(ref) as cdata_path:
         ref_path = str(cdata_path)
 

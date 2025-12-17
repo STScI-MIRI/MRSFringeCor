@@ -4,9 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from astropy.table import QTable
 import astropy.units as u
-from astropy.convolution import Gaussian1DKernel, convolve
 
-from measure_extinction.utils.make_obsdata_from_model import rebin_spectrum
+from MRSStaticRRSRF.utils.helpers import rebin_constres
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -29,8 +28,9 @@ if __name__ == "__main__":  # pragma: no cover
 
         # rebin to R=10000 for speed
         rbres = 10000.0
-        wave_rebin, flux_rebin, npts_rebin = rebin_spectrum(
-            mwave.value, mflux.value, rbres, [45000.0, 300000.0]
+        munc = np.full(len(mflux.value), 1.0)
+        wave_rebin, flux_rebin, npts_rebin = rebin_constres(
+            mwave.value, mflux.value, munc, [45000.0, 300000.0], rbres
         )
         mwave = wave_rebin * u.angstrom
         mflux = flux_rebin * u.Jy
