@@ -10,24 +10,9 @@ from astropy.units import UnitsWarning
 from astropy.stats import sigma_clipped_stats
 from astropy.modeling import models, fitting
 
-# import astropy.units as u
-
-
 from jwst.residual_fringe.utils import fit_residual_fringes_1d
 
-# from astropy import constants as const
-# from specutils import Spectrum
-# from specutils.analysis import correlation
-# import rfc1d_utils
-
-
-# def rf1d(spectrum, wave, channel):
-#     wavenum = 10000.0 / wave
-#     weights = spectrum / np.median(spectrum)
-#     weights[weights == np.inf] = 0
-#     weights[np.isnan(weights)] = 0
-#     corflux = rfc1d_utils.fit_residual_fringes(spectrum, weights, wavenum, channel)
-#     return corflux
+from MRSStaticRRSRF.utils.helpers import rydberg
 
 
 def main():
@@ -67,6 +52,36 @@ def main():
     snreg = {"1short": [5.16, 5.32],
              "1medium": [6.0, 6.1],
              "1long": [7.0, 7.2]}
+
+    # regions to mask for residual fringe corrections
+    hnames = []
+    hwaves = []
+    # Pfund series
+    n1 = 5
+    for n2 in range(6, 7, 1):
+        hnames.append("HI " + str(n2) + "-" + str(n1))
+        hwaves.append(rydberg(n1, n2))
+    # Humphreys series
+    n1 = 6
+    for n2 in range(7, 11, 1):
+        hnames.append("HI " + str(n2) + "-" + str(n1))
+        hwaves.append(rydberg(n1, n2))
+    n1 = 7
+    for n2 in range(8, 18, 1):
+        hnames.append("HI " + str(n2) + "-" + str(n1))
+        hwaves.append(rydberg(n1, n2))
+    n1 = 8
+    for n2 in range(10, 13, 1):
+        hnames.append("HI " + str(n2) + "-" + str(n1))
+        hwaves.append(rydberg(n1, n2))
+    n1 = 9
+    for n2 in range(12, 15, 1):
+        hnames.append("HI " + str(n2) + "-" + str(n1))
+        hwaves.append(rydberg(n1, n2))
+
+    maskreg = []
+    for hwave in hwaves:
+        maskreg.append([hwave - 0.01, hwave + 0.01])
 
     cname = args.starname
     # get the 1st dithers only
@@ -194,7 +209,8 @@ def main():
             alpha=0.75,
         )
 
-        sdefringe = fit_residual_fringes_1d(avespec, refwave, channel=chn + 1)
+
+        sdefringe = fit_residual_fringes_1d(avespec, refwave, channel=chn + 1, ignore_regions=maskreg)
         rfringecor = sdefringe / avespec
 
         ckey = f"{chn}{band}"

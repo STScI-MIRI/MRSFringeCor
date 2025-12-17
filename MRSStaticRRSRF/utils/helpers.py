@@ -2,6 +2,14 @@ import numpy as np
 import astropy.units as u
 
 
+# Return wavelength in microns rounded to 5 decimals
+def rydberg(n1, n2):
+    R = 1.09677576e7
+    linv = R * ((1 / (n1 * n1)) - (1 / (n2 * n2)))
+    lvalue = 1e6 / linv
+    return np.round(lvalue, 7)
+
+
 def _wavegrid(resolution, wave_range):
     """
     Define a wavelength grid at a specified resolution given

@@ -7,14 +7,7 @@ from astropy.table import QTable
 import astropy.units as u
 from astropy.io import fits
 
-from MRSStaticRRSRF.utils.helpers import rebin_constres
-
-# Return wavelength in microns rounded to 5 decimals
-def rydberg(n1, n2):
-    R = 1.09677576e7
-    linv = R * ((1 / (n1 * n1)) - (1 / (n2 * n2)))
-    lvalue = 1e6 / linv
-    return np.round(lvalue, 7)
+from MRSStaticRRSRF.utils.helpers import rebin_constres, rydberg
 
 
 def main():
