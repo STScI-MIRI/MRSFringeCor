@@ -118,8 +118,7 @@ def main():
     # do the leak correction for the individual dithers
     cname = args.starname
     # get the 1st dithers only
-    files = glob.glob(f"{cname}/*_dithsub_*x1d.fits")
-    print(files)
+    files = glob.glob(f"{cname}/*00001*_dithsub_*x1d.fits")
 
     print("correcting the leak in 3A using 1B")
     for cfile in files:
@@ -138,9 +137,7 @@ def main():
         ref_path = str(cdata_path)
 
     # loop over the dithers and correct the 3A segments using the 1B segment
-    print(file_1b, file_3a)
-    for k, cdith in enumerate(["1", "2", "3", "4"]):
-        print(cdith)
+    for cdith in ["1", "2", "3", "4"]:
         correct_miri_mrs_spectral_leak(
             file_3a.replace("_00001_", f"_0000{cdith}_"),
             file_1b.replace("_00001_", f"_0000{cdith}_"),
