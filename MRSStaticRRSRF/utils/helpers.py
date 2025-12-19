@@ -11,7 +11,7 @@ def rydberg(n1, n2):
     return np.round(lvalue, 7)
 
 
-def clean_crs(pflux, sigma_fac=5, width=11):
+def clean_crs(pflux, sigma_fac=3, width=11):
     medpflux = medfilt(pflux.astype(float), width)
 
     # determine the noise

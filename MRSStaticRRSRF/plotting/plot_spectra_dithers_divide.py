@@ -223,8 +223,8 @@ def main():
             alpha=0.75,
         )
 
-        sdefringe = fit_residual_fringes_1d(avespec, refwave, channel=chn + 1)  #, ignore_regions=maskreg)
-        # sdefringe = avespec
+        # sdefringe = fit_residual_fringes_1d(avespec, refwave, channel=chn + 1)  #, ignore_regions=maskreg)
+        sdefringe = avespec
         rfringecor = sdefringe / avespec
 
         ckey = f"{chn}{band}"
