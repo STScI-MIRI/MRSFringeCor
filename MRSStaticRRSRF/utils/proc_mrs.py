@@ -138,7 +138,9 @@ def main():
         ref_path = str(cdata_path)
 
     # loop over the dithers and correct the 3A segments using the 1B segment
+    print(file_1b, file_3a)
     for k, cdith in enumerate(["1", "2", "3", "4"]):
+        print(cdith)
         correct_miri_mrs_spectral_leak(
             file_3a.replace("_00001_", f"_0000{cdith}_"),
             file_1b.replace("_00001_", f"_0000{cdith}_"),
