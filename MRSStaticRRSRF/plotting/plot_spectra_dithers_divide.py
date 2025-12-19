@@ -99,7 +99,7 @@ def main():
 
     cname = args.starname
     # get the 1st dithers only
-    files = glob.glob(f"{cname}/jw*_00001_*_x1d.fits")
+    files = glob.glob(f"{cname}/jw*_00001_*_dithsub_*x1d.fits")
 
     # warning about masks in numpy that I've not managed to figure out yet
     warnings.filterwarnings('ignore', category=UserWarning)
@@ -213,7 +213,7 @@ def main():
             # allspec[:, k] = corflux
 
         # make average corrected spectrum
-        specclipped = sigma_clipped_stats(allspec, axis=1, sigma=2.0, cenfunc=custest)
+        specclipped = sigma_clipped_stats(allspec, axis=1, sigma=2.0) #, cenfunc=custest)
         avespec = specclipped[0]
         ax.plot(
             refwave,

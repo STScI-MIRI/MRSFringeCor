@@ -81,7 +81,8 @@ def main():
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=u.UnitsWarning)
             itab = QTable.read(cfile, hdu=1)
-        cflux = clean_crs(itab[fluxkey].value)
+        # cflux = clean_crs(itab[fluxkey].value)
+        cflux = itab[fluxkey].value
         cwave = itab["WAVELENGTH"].value
         cunc = itab["FLUX_ERROR"].value
 

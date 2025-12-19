@@ -38,11 +38,13 @@ def runspec2(filename, outdir, nocubes=False):
     sp2_dict = {}
     sp2_dict["residual_fringe"] = {"skip": True}
     sp2_dict["straylight"] = {"clean_showers": True}
+    # sp2_dict["badpix_selfcal"] = {"skip": False, "force_single": True}
     sp2_dict["pixel_replace"] = {"skip": False, "algorithm": "mingrad"}
     if nocubes:
         sp2_dict["cube_build"] = {"skip": True}
         sp2_dict["extract_1d"] = {"skip": True}
     else:
+        # sp2_dict["fit_profile"] = {"skip": False, "oversample": 3}
         sp2_dict["cube_build"] = {"output_type": "band", "coord_system": "ifualign"}
         sp2_dict["extract_1d"] = {"ifu_autocen": True}
 
@@ -51,6 +53,7 @@ def runspec2(filename, outdir, nocubes=False):
 
 def runspec3(filename, outdir):
     sp3_dict = {}
+    # sp3_dict["fit_profile"] = {"skip": False, "oversample": 3}
     sp3_dict["cube_build"] = {"output_type": "band", "coord_system": "ifualign"}
     sp3_dict["extract_1d"] = {"ifu_autocen": True, "ifu_rfcorr": True}
     sp3_dict["outlier_detection"] = {
@@ -62,11 +65,32 @@ def runspec3(filename, outdir):
     Spec3Pipeline.call(filename, steps=sp3_dict, output_dir=outdir, save_results=True)
 
 
+def subdithers(ratefiles):
+    # subtract pairs of dithers
+    dithsub = [2, 1, 4, 3]
+
+    # 1 - 2, 2 -1
+    # 3 - 4, 4 - 3
+    for cfile in ratefiles:
+        print(cfile)
+
+        for k, cdith in enumerate(["1", "2", "3", "4"]):
+            tfile = cfile.replace("_00001_", f"_0000{cdith}_")
+            sfile = cfile.replace("_00001_", f"_0000{dithsub[k]}_")
+
+            sdata = fits.getdata(sfile, ext=1)
+
+            thdu = fits.open(tfile)
+            thdu[1].data -= sdata
+            thdu.writeto(tfile.replace("_rate", "_dithsub_rate"), overwrite=True)
+            thdu.close()
+
+
 # function to correct spectral leak
 def correct_miri_mrs_spectral_leak(ch3file, ch1file, leakreffile):
     """
     Corrects the MRS spectra at 12.2 um for a leak that comes from 6.1 micron.
-    
+
     Parameters
     ----------
     ch3file: FITS filename with spectrum containing 12.2 micron (assumed to be in Jy)
@@ -85,7 +109,7 @@ def correct_miri_mrs_spectral_leak(ch3file, ch1file, leakreffile):
     leak_wave = cdata["wavelength"]
     leak_frac = cdata["frac_leak"]
     lmin, lmax = 11.6, 13.4
-    
+
     # read in the spectral segment with the leak that needs correcting (includes 12.2 micron)
     hdul = fits.open(ch3file)
     cdata = hdul[1].data
@@ -102,16 +126,16 @@ def correct_miri_mrs_spectral_leak(ch3file, ch1file, leakreffile):
     wave1b = cdata["WAVELENGTH"]
     flux1b = cdata["FLUX"]
 
-    interp = np.interp(wave, wave1b*2, flux1b)
+    interp = np.interp(wave, wave1b * 2, flux1b)
     interp_leak = np.interp(wave, leak_wave, leak_frac)
 
     # Apply spectral leak calibration to the 1B spectra
     leak = interp * interp_leak
-    
+
     # remove the leak from the full channel 3 spectrum and save it
     orig_flux[gvals] = flux - leak
 
     hdul[1].data["FLUX"] = orig_flux
     hdul.writeto(ch3file.replace(".fits", "_leakcor.fits"), overwrite=True)
-    
+
     hdul.close()
