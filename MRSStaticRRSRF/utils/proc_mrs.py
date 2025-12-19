@@ -117,7 +117,7 @@ def main():
     # do the leak correction for the individual dithers
     cname = args.starname
     # get the 1st dithers only
-    files = glob.glob(f"{cname}/jw*_00001_*_x1d.fits")
+    files = glob.glob(f"{cname}/*_dithsub_*x1d.fits")
     print(files)
 
     print("correcting the leak in 3A using 1B")
