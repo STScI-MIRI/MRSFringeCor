@@ -22,7 +22,7 @@ dynamic = ["version"]
 
 [project.scripts]
 mrs_proc = "MRSStaticRRSRF.utils.proc_mrs:main"
-mrs_srfcor = "MRSStaticRRSRF.plotting.plot_spectra_dithers_divide:main"
+mrs_srfcor = "MRSStaticRRSRF.plotting.plot_dithers_static_rrsrf:main"
 mrs_plot = "MRSStaticRRSRF.plotting.plot_mrs_x1d:main"
 
 [project.optional-dependencies]

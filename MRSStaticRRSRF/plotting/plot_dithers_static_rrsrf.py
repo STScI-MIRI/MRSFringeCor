@@ -37,7 +37,7 @@ def main():
         "--chan", help="plot only one channel", choices=["1", "2", "3", "4"]
     )
     parser.add_argument(
-        "--nodithsub", help="do not do the pair dither subtraction", action="store_true"
+        "--dithsub", help="use the pair dither subtraction data", action="store_true"
     )
     parser.add_argument("--png", help="save figure as a png file", action="store_true")
     parser.add_argument("--pdf", help="save figure as a pdf file", action="store_true")
@@ -102,13 +102,13 @@ def main():
 
     cname = args.starname
     # get the 1st dithers only
-    if args.nodithsub:
+    if args.dithsub:
+        extstr = "_dithsub"
+        files = glob.glob(f"{cname}/jw*_00001_*_dithsub_*x1d.fits")
+    else:
         extstr = ""
         files = (glob.glob(f"{cname}/jw*_00001_*short_?_x1d.fits")
                  + glob.glob(f"{cname}/jw*_00001_*long_?_x1d.fits"))
-    else:
-        extstr = "_dithsub"
-        files = glob.glob(f"{cname}/jw*_00001_*_dithsub_*x1d.fits")
 
     # warning about masks in numpy that I've not managed to figure out yet
     warnings.filterwarnings('ignore', category=UserWarning)
