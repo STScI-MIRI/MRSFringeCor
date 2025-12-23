@@ -34,7 +34,7 @@ if __name__ == "__main__":  # pragma: no cover
         wave_rebin, flux_rebin, uncs_rebin, npts_rebin = rebin_constres(
             mwave, mflux.value, munc, waverange, rbres
         )
-        mwave = wave_rebin * u.angstrom
+        mwave = wave_rebin
         mflux = flux_rebin * u.Jy
 
         otab = QTable()

@@ -38,7 +38,7 @@ def runspec2(filename, outdir, nocubes=False):
     sp2_dict = {}
     sp2_dict["residual_fringe"] = {"skip": True}
     sp2_dict["straylight"] = {"clean_showers": True}
-    # sp2_dict["badpix_selfcal"] = {"skip": False, "force_single": True}
+    sp2_dict["badpix_selfcal"] = {"skip": False}
     sp2_dict["pixel_replace"] = {"skip": False, "algorithm": "mingrad"}
     if nocubes:
         sp2_dict["cube_build"] = {"skip": True}

@@ -2,6 +2,7 @@ import argparse
 import warnings
 import matplotlib.pyplot as plt
 import numpy as np
+import astropy.units as u
 from astropy.table import QTable
 from astropy.units import UnitsWarning
 from astropy.convolution import Gaussian1DKernel, convolve
@@ -13,6 +14,7 @@ if __name__ == "__main__":  # pragma: no cover
     parser.add_argument(
         "--chan", help="plot only one channel", choices=["1", "2", "3", "4"]
     )
+    parser.add_argument("--dithsub", help="use dithsub pairs", action="store_true")
     parser.add_argument("--png", help="save figure as a png file", action="store_true")
     parser.add_argument("--pdf", help="save figure as a pdf file", action="store_true")
     args = parser.parse_args()
@@ -32,7 +34,7 @@ if __name__ == "__main__":  # pragma: no cover
 
     # fmt: off
     #   info is ([short, medium, long], model file, type)
-    sinfo = {"muCol": (["jw04497004001_04101", "jw04497004001_06101", "jw04497004001_08101"], "mucol_mod_006_r10000.fits", "hot"),
+    sinfo = {# "muCol": (["jw04497004001_04101", "jw04497004001_06101", "jw04497004001_08101"], "mucol_mod_006_r10000.fits", "hot"),
              "delUMi": (["jw01536024001_04102", "jw01536024001_04104", "jw01536024001_04106"], "delumi_mod_005_r10000.fits", "A"),
              "HR5467": (["jw04496009001_03102", "jw04496009001_03104", "jw04496009001_03106"], "hd128998_mod_004_r10000.fits", "A"),
              "HD2811_c1": (["jw01536022001_08101", "jw01536022001_06101", "jw01536022001_06101"], "hd2811_mod_006_r10000.fits", "A"),
@@ -57,6 +59,11 @@ if __name__ == "__main__":  # pragma: no cover
     cres = 1000.0
     rbres = 10000.0  # model resolution
 
+    if args.dithsub:
+        extstr = "_dithsub"
+    else:
+        extstr = ""
+
     firsttime = True
     for m, cname in enumerate(sinfo.keys()):
         pname = cname
@@ -65,7 +72,7 @@ if __name__ == "__main__":  # pragma: no cover
         # get the model
         if mfile is not None:
             mtab = QTable.read(f"models/{mfile}")
-            mwave = mtab["wavelength"]
+            mwave = mtab["wavelength"].value * u.micron
             mflux = mtab["flux"]
             mflux *= mwave**2
 
@@ -74,7 +81,7 @@ if __name__ == "__main__":  # pragma: no cover
                 for cwave in ["0", "1"]:
                     for k, cdith in enumerate(["1", "2", "3", "4"]):
 
-                        cfile = f"{dname}_0000{cdith}_mirifu{csub}_{cwave}_x1d.fits"
+                        cfile = f"{dname}_0000{cdith}_mirifu{csub}{extstr}_{cwave}_x1d.fits"
                         if (csub == "long") & (cwave == "0") & (n == 0):
                             cfile = cfile.replace(".fits", "_leakcor.fits")
                         with warnings.catch_warnings():
@@ -169,7 +176,7 @@ if __name__ == "__main__":  # pragma: no cover
                     color="black",
                     alpha=0.7,
                 )
-            otab.write(f"refs/mrs_residfringe_chn{i+1}_{gnames[j]}.fits", overwrite=True)
+            otab.write(f"MRSStaticRRSRF/refs/mrs_residfringe{extstr}_chn{i+1}_{gnames[j]}.fits", overwrite=True)
 
     ax.set_xlabel(r"$\lambda$ [$\mu$m]")
     ax.set_ylabel(r"$\lambda^2 F(\nu)$ / median + const")
@@ -196,7 +203,7 @@ if __name__ == "__main__":  # pragma: no cover
 
     fig.tight_layout()
 
-    save_str = f"figs/mrs_fringecor_dither_stack_chn{channame}"
+    save_str = f"figs/mrs_fringecor_dither_stack{extstr}_chn{channame}"
     if args.png:
         fig.savefig(f"{save_str}.png")
     elif args.pdf:

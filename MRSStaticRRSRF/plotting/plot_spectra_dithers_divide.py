@@ -36,6 +36,9 @@ def main():
     parser.add_argument(
         "--chan", help="plot only one channel", choices=["1", "2", "3", "4"]
     )
+    parser.add_argument(
+        "--nodithsub", help="do not do the pair dither subtraction", action="store_true"
+    )
     parser.add_argument("--png", help="save figure as a png file", action="store_true")
     parser.add_argument("--pdf", help="save figure as a pdf file", action="store_true")
     args = parser.parse_args()
@@ -99,7 +102,13 @@ def main():
 
     cname = args.starname
     # get the 1st dithers only
-    files = glob.glob(f"{cname}/jw*_00001_*_dithsub_*x1d.fits")
+    if args.nodithsub:
+        extstr = ""
+        files = (glob.glob(f"{cname}/jw*_00001_*short_?_x1d.fits")
+                 + glob.glob(f"{cname}/jw*_00001_*long_?_x1d.fits"))
+    else:
+        extstr = "_dithsub"
+        files = glob.glob(f"{cname}/jw*_00001_*_dithsub_*x1d.fits")
 
     # warning about masks in numpy that I've not managed to figure out yet
     warnings.filterwarnings('ignore', category=UserWarning)
@@ -223,8 +232,8 @@ def main():
             alpha=0.75,
         )
 
-        # sdefringe = fit_residual_fringes_1d(avespec, refwave, channel=chn + 1)  #, ignore_regions=maskreg)
-        sdefringe = avespec
+        sdefringe = fit_residual_fringes_1d(avespec, refwave, channel=chn + 1)  #, ignore_regions=maskreg)
+        # sdefringe = avespec
         rfringecor = sdefringe / avespec
 
         ckey = f"{chn}{band}"
@@ -310,7 +319,7 @@ def main():
 
     fig.tight_layout()
 
-    save_str = f"{args.starname}/{args.starname}_dither_divide_chn{channame}"
+    save_str = f"{args.starname}/{args.starname}_dither_divide_{extstr}_chn{channame}"
     if args.png:
         fig.savefig(f"{save_str}.png")
     elif args.pdf:

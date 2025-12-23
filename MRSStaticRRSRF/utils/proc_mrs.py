@@ -6,6 +6,7 @@ from astropy.io import fits
 import numpy as np
 
 from jwst.associations import asn_from_list as afl
+from jwst.associations.lib.rules_level2_base import DMSLevel2bBase
 from jwst.associations.lib.rules_level3_base import DMS_Level3_Base
 
 
@@ -17,6 +18,56 @@ from MRSStaticRRSRF.utils.mrs_helpers import (
     subdithers,
     correct_miri_mrs_spectral_leak,
 )
+
+# Define a convenience function to select only files of a given channel/band from an input set
+def select_ch_band_files(files, use_ch, use_band):
+    if ((use_ch != '') & (use_band != '')):
+        keep = np.zeros(len(files))
+        for ii in range(0, len(files)):
+            with fits.open(files[ii]) as hdu:
+                hdu.verify()
+                hdr = hdu[0].header
+                if ((hdr['CHANNEL'] == use_ch) & (hdr['BAND'] == use_band)):
+                    keep[ii] = 1
+        indx = np.where(keep == 1)
+        files_culled = files[indx]
+    else:
+        files_culled = files
+        
+    return files_culled
+
+
+def writel2asn(onescifile, bgfiles, selfcalfiles, asnfile, prodname):
+    # Define the basic association of science files
+    asn = afl.asn_from_list([onescifile], rule=DMSLevel2bBase, product_name=prodname)  # Wrap in array since input was single exposure
+
+    #Channel/band configuration for this sci file
+    with fits.open(onescifile) as hdu:
+        hdu.verify()
+        hdr = hdu[0].header
+        this_channel, this_band = hdr['CHANNEL'], hdr['BAND']
+
+    # If backgrounds were provided, find which are appropriate to this
+    # channel/band and add to association
+    if bgfiles is not None:
+        for file in bgfiles:
+            with fits.open(file) as hdu:
+                hdu.verify()
+                if ((hdu[0].header['CHANNEL'] == this_channel) & (hdu[0].header['BAND'] == this_band)):
+                    asn['products'][0]['members'].append({'expname': file, 'exptype': 'background'})
+                
+    # If provided with a list of files to use for bad pixel self-calibration, find which
+    # are appropriate to this detector and add to association
+    for file in selfcalfiles:
+        with fits.open(file) as hdu:
+            hdu.verify()
+            if (hdu[0].header['CHANNEL'] == this_channel):
+                asn['products'][0]['members'].append({'expname': file, 'exptype': 'selfcal'})                
+
+    # Write the association to a json file
+    _, serialized = asn.dump()
+    with open(asnfile, 'w') as outfile:
+        outfile.write(serialized)
 
 
 # Define a useful function to write out a Lvl3 association file from an input list
@@ -90,9 +141,15 @@ def main():
 
     print("Found " + str(len(ratefiles)) + " input files to process")
 
+    # remove the path information as this causes issues with the association file
+    # ratefiles = [cfile.split("/")[-1] for cfile in ratefiles]
+    ratefiles = [os.path.abspath(cfile) for cfile in ratefiles]
+
     if dospec2:
         for file in ratefiles:
-            runspec2(file, output_dir)
+            asnfile = os.path.join(output_dir, 'l2asn.json')
+            writel2asn(file, None, ratefiles, asnfile, 'Level2')
+            runspec2(asnfile, output_dir)
     else:
         print("Skipping Spec2 processing")
 
