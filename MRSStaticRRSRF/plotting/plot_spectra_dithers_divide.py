@@ -43,7 +43,7 @@ def main():
     parser.add_argument("--pdf", help="save figure as a pdf file", action="store_true")
     args = parser.parse_args()
 
-    # get the location of the static fringe correction files
+    # get the location of the static RRSRF correction files
     ref = importlib_resources.files("MRSStaticRRSRF") / "refs"
     with importlib_resources.as_file(ref) as cdata_path:
         ref_path = str(cdata_path)

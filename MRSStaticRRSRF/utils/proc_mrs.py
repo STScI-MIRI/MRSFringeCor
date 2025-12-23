@@ -86,7 +86,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("starname", help="name of star")
     parser.add_argument(
-        "--nodithsub", help="do not do the pair dither subtraction", action="store_true"
+        "--dithsub", help="do the pair dither subtraction", action="store_true"
     )
     parser.add_argument("--det1skip", help="skip dectector1", action="store_true")
     parser.add_argument("--spec2skip", help="skip dectector1", action="store_true")
@@ -122,28 +122,27 @@ def main():
         print("Skipping Detector1 processing")
 
     # add full image dither pair subtractions, only need dither 1 files here
-    if dospec2 & (not args.nodithsub):
+    if dospec2 & args.dithsub:
         files = glob.glob(f"{main_path}/jw*_00001_*mirifushort_rate.fits") + glob.glob(
             f"{main_path}/jw*_00001_*mirifulong_rate.fits"
         )
-        ratefiles = sorted(files)
-        ratefiles = np.array(ratefiles)
+        ratefiles = np.array(sorted(files))
         subdithers(ratefiles)
 
     # Look for uncalibrated science slope files from the Detector1 pipeline
-    if args.nodithsub:
+    if args.dithsub:
+        sstring = f"{main_path}/jw*mirifu*dithsub_rate.fits"
+        ratefiles = sorted(glob.glob(sstring))
+    else:
         ratefiles = glob.glob(f"{main_path}/jw*mirifushort_rate.fits") + glob.glob(
             f"{main_path}/jw*mirifulong_rate.fits"
         )
-    else:
-        sstring = f"{main_path}/jw*mirifu*dithsub_rate.fits"
-        ratefiles = sorted(glob.glob(sstring))
 
     print("Found " + str(len(ratefiles)) + " input files to process")
 
-    # remove the path information as this causes issues with the association file
-    # ratefiles = [cfile.split("/")[-1] for cfile in ratefiles]
+    # make absolute paths information as this is needed for the association file
     ratefiles = [os.path.abspath(cfile) for cfile in ratefiles]
+    print(ratefiles)
 
     if dospec2:
         for file in ratefiles:
@@ -154,18 +153,19 @@ def main():
         print("Skipping Spec2 processing")
 
     # Science Files need the cal.fits files
-    if args.nodithsub:
-        sstring = f"{output_dir}/jw*mirifu*_cal.fits"
+    if args.dithsub:
+        sstring = f"{output_dir}/jw*mirifu*dithsub_cal.fits"
         calfiles = np.array(sorted(glob.glob(sstring)))
-        asnname = f"{starname}_level3"
+        asnname = f"{starname}_dithsub_level3"
     else:
         calfiles = glob.glob(f"{main_path}/jw*mirifushort_cal.fits") + glob.glob(
             f"{main_path}/jw*mirifulong_cal.fits"
         )
-        asnname = f"{starname}_dithsub_level3"
+        asnname = f"{starname}_level3"
 
     # remove the path information as this causes issues with the association file
     calfiles = [cfile.split("/")[-1] for cfile in calfiles]
+    print(calfiles)
 
     print("Found " + str(len(calfiles)) + " science files to process")
 
@@ -174,7 +174,6 @@ def main():
     if dospec3:
         writel3asn(calfiles, None, asnfile, asnname)
 
-    print(asnfile)
     if dospec3:
         runspec3(asnfile, output_dir)
     else:
@@ -183,12 +182,12 @@ def main():
     # do the leak correction for the individual dithers
     cname = args.starname
     # get the 1st dithers only
-    if args.nodithsub:
-        files = glob.glob(f"{main_path}/jw*mirifushort_?_x1d.fits") + glob.glob(
-            f"{main_path}/jw*mirifulong_?_x1d.fits")
-        lfiles = f"{cname}/*00001*_dithsub_*x1d.fits"
-    else:
+    if args.dithsub:
         files = glob.glob(f"{cname}/*00001*_dithsub_*x1d.fits")
+    else:
+        files = glob.glob(f"{main_path}/jw*_00001_mirifushort_?_x1d.fits") + glob.glob(
+            f"{main_path}/jw*_00001_mirifulong_?_x1d.fits"
+        )
 
     print("correcting the leak in 3A using 1B")
     for cfile in files:

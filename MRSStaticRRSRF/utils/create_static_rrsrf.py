@@ -1,5 +1,6 @@
 import argparse
 import warnings
+import importlib.resources as importlib_resources
 import matplotlib.pyplot as plt
 import numpy as np
 import astropy.units as u
@@ -7,6 +8,7 @@ from astropy.table import QTable
 from astropy.units import UnitsWarning
 from astropy.convolution import Gaussian1DKernel, convolve
 from astropy.modeling import models, fitting
+import astropy.units as u
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -18,6 +20,11 @@ if __name__ == "__main__":  # pragma: no cover
     parser.add_argument("--png", help="save figure as a png file", action="store_true")
     parser.add_argument("--pdf", help="save figure as a pdf file", action="store_true")
     args = parser.parse_args()
+
+    # get the location of the static RRSRF correction files
+    ref = importlib_resources.files("MRSStaticRRSRF") / "refs"
+    with importlib_resources.as_file(ref) as cdata_path:
+        ref_path = str(cdata_path)
 
     fontsize = 14
 
